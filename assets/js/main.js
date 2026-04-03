@@ -200,3 +200,119 @@ $(".submit-btn-modal").click(function () {
   $("#bookingModal").removeClass("active");
   $("body").css("overflow", "");
 });
+
+
+// ========================== Profile Page ==========================
+function switchTab(name) {
+    document.querySelectorAll('.p-tab').forEach(function(t, i) {
+        t.classList.toggle('active', ['courses', 'sessions'][i] === name);
+    });
+    document.querySelectorAll('.p-tab-content').forEach(function(c) { c.classList.remove('active'); });
+    document.getElementById('tab-' + name).classList.add('active');
+}
+
+function openModal(id) {
+    document.getElementById('modal-' + id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+    try { lenis.stop(); } catch(e) {}
+}
+
+function closeModal(id) {
+    document.getElementById('modal-' + id).classList.remove('open');
+    document.body.style.overflow = '';
+    try { lenis.start(); } catch(e) {}
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // إغلاق الـ modal بالضغط على الـ overlay
+    document.querySelectorAll('.p-overlay').forEach(function(overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                overlay.classList.remove('open');
+                document.body.style.overflow = '';
+                try { lenis.start(); } catch(err) {}
+            }
+        });
+    });
+    // منع الـ click من جوه الـ modal يوصل للـ overlay
+    document.querySelectorAll('.p-modal, .cert-wrap').forEach(function(modal) {
+        modal.addEventListener('click', function(e) { e.stopPropagation(); });
+        modal.addEventListener('wheel', function(e) {
+            var atTop = this.scrollTop === 0 && e.deltaY < 0;
+            var atBottom = this.scrollTop + this.clientHeight >= this.scrollHeight && e.deltaY > 0;
+            if (atTop || atBottom) e.preventDefault();
+            e.stopPropagation();
+        }, { passive: false });
+    });
+});
+
+function showToast() {
+    var t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 2200);
+}
+
+function saveMain() {
+    document.getElementById('dispName').textContent = document.getElementById('f-name').value;
+    document.getElementById('dispTitle').textContent = document.getElementById('f-title').value;
+    document.getElementById('dispLocation').textContent = document.getElementById('f-location').value;
+    document.getElementById('statCourses').textContent = document.getElementById('f-sc').value;
+    document.getElementById('statDone').textContent = document.getElementById('f-sd').value;
+    document.getElementById('statSessions').textContent = document.getElementById('f-ss').value;
+    var parts = document.getElementById('f-name').value.trim().split(' ');
+    var initials = (parts[0] ? parts[0][0] : '') + (parts[1] ? parts[1][0] : '');
+    var el = document.getElementById('avatarInitials');
+    if (el) el.textContent = initials;
+    closeModal('modal-main'); showToast();
+}
+
+function saveContact() {
+    document.getElementById('dispEmail').textContent = document.getElementById('f-email').value;
+    document.getElementById('dispPhone').textContent = document.getElementById('f-phone').value;
+    document.getElementById('dispCity').textContent = document.getElementById('f-city').value;
+    document.getElementById('dispAge').textContent = document.getElementById('f-age').value;
+    closeModal('modal-contact'); showToast();
+}
+
+function saveAbout() {
+    document.getElementById('dispAbout').textContent = document.getElementById('f-about').value;
+    closeModal('modal-about'); showToast();
+}
+
+function saveInterests() {
+    var tags = document.getElementById('f-interests').value.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+    var list = document.getElementById('tagList');
+    list.innerHTML = '';
+    tags.forEach(function(t) {
+        var s = document.createElement('span');
+        s.className = 'p-tag';
+        s.textContent = t;
+        list.appendChild(s);
+    });
+    closeModal('modal-interests'); showToast();
+}
+
+function openCert(title, trainer, date, duration, certId) {
+    document.getElementById('cert-title').textContent = title;
+    document.getElementById('cert-recipient').textContent = document.getElementById('dispName').textContent;
+    document.getElementById('cert-trainer').textContent = trainer;
+    document.getElementById('cert-date').textContent = date;
+    document.getElementById('cert-duration').textContent = duration;
+    document.getElementById('cert-id').textContent = certId;
+    openModal('modal-cert');
+}
+
+function handleAvatar(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+        var el = document.getElementById('avatarEl');
+        el.style.backgroundImage = 'url(' + ev.target.result + ')';
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+        var sp = document.getElementById('avatarInitials');
+        if (sp) sp.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
